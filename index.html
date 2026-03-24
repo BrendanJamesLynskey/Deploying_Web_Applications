@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deploying Web Applications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/black.min.css">
+<style>
+  :root {
+    --amber:  #f5a623;
+    --green:  #4ecb8d;
+    --purple: #a78bfa;
+    --blue:   #60a5fa;
+    --red:    #f87171;
+    --bg:     #0a0a0f;
+    --bg2:    #10101a;
+    --bg3:    #181824;
+    --border: #2a2a3a;
+    --text:   #e8e8f0;
+    --muted:  #8888a8;
+  }
+
+  .reveal-viewport { background: var(--bg); }
+  .reveal .slides section { background: transparent; }
+
+  .reveal { font-family: 'DM Sans', sans-serif; color: var(--text); }
+  .reveal h1, .reveal h2, .reveal h3 { font-family: 'Playfair Display', serif; font-weight: 700; }
+  .reveal h1 { font-size: 1.6em; color: var(--amber); line-height: 1.1; }
+  .reveal h2 { font-size: 1.1em; color: var(--amber); margin-bottom: .2em; }
+  .reveal h3 { font-size: .78em; color: var(--green); margin-bottom: .15em; }
+  .reveal p  { font-size: .56em; line-height: 1.45; color: var(--text); }
+  .reveal li { font-size: .54em; line-height: 1.45; margin-bottom: .1em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; font-size: .72em; }
+  .reveal pre  { box-shadow: none; background: var(--bg3); border: 1px solid var(--border);
+                 border-radius: 6px; padding: .3em .5em; margin: .25em 0; }
+  .reveal pre code { font-size: .52em; line-height: 1.35; background: transparent; color: #cdd6f4; }
+
+  /* ── slide chrome ── */
+  .slide-hdr {
+    display: flex; align-items: center; gap: .4em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .2em; margin-bottom: .3em;
+  }
+  .slide-hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: .42em; font-weight: 500;
+    color: var(--bg); background: var(--amber);
+    padding: .1em .4em; border-radius: 3px;
+    letter-spacing: .04em;
+  }
+  .slide-hdr h2 { margin: 0; font-size: .95em; }
+
+  /* ── two-column ── */
+  .cols   { display: grid; gap: .5em; }
+  .cols-2 { grid-template-columns: 1fr 1fr; }
+  .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .cols-6040 { grid-template-columns: 6fr 4fr; }
+  .cols-4060 { grid-template-columns: 4fr 6fr; }
+
+  /* ── cards ── */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 6px; padding: .35em .6em;
+  }
+  .card.amber { border-left: 3px solid var(--amber); }
+  .card.green { border-left: 3px solid var(--green); }
+  .card.purple{ border-left: 3px solid var(--purple); }
+  .card.blue  { border-left: 3px solid var(--blue); }
+  .card.red   { border-left: 3px solid var(--red); }
+  .card h3 { font-size: .64em; margin: 0 0 .12em; }
+  .card p  { font-size: .52em; margin: 0; color: #b8b8d0; }
+  .card ul { margin: 0; padding-left: 1em; }
+  .card li { font-size: .52em; color: #b8b8d0; margin-bottom: .02em; }
+
+  /* ── table ── */
+  .reveal table { width: 100%; border-collapse: collapse; font-size: .5em; }
+  .reveal table th { background: var(--bg3); color: var(--amber); font-weight: 600;
+                     padding: .2em .4em; border: 1px solid var(--border); text-align: left; }
+  .reveal table td { padding: .18em .4em; border: 1px solid var(--border); color: #ccc; }
+  .reveal table tr:nth-child(even) td { background: #0e0e18; }
+
+  /* ── accent spans ── */
+  .a  { color: var(--amber); font-weight: 600; }
+  .g  { color: var(--green); font-weight: 600; }
+  .p  { color: var(--purple); font-weight: 600; }
+  .b  { color: var(--blue); font-weight: 600; }
+  .r  { color: var(--red); font-weight: 600; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* ── SVG graph diagrams ── */
+  svg.diagram { display: block; margin: 0 auto; overflow: visible; }
+
+  /* ── pill badges ── */
+  .pill {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: .44em; padding: .08em .4em; border-radius: 99px;
+    border: 1px solid; margin: 0 .08em;
+  }
+  .pill.amber { color: var(--amber); border-color: var(--amber); }
+  .pill.green { color: var(--green); border-color: var(--green); }
+  .pill.purple{ color: var(--purple); border-color: var(--purple); }
+  .pill.blue  { color: var(--blue); border-color: var(--blue); }
+
+  /* ── footer — hidden; was overlapping scrollable content ── */
+  .reveal .slide-footer { display: none; }
+  /* title slide special */
+  .title-slide h1 { font-size: 1.8em; }
+  .title-slide .subtitle {
+    font-size: .7em; color: var(--green); font-family: 'DM Sans', sans-serif;
+    font-weight: 300; letter-spacing: .04em; margin: .3em 0 .6em;
+  }
+  .title-slide .meta { font-size: .48em; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── super-step animator ── */
+  .ss-row {
+    display: flex; gap: .25em; align-items: center;
+    margin: .1em 0; font-size: .55em; font-family: 'JetBrains Mono', monospace;
+  }
+  .ss-node {
+    padding: .2em .55em; border-radius: 5px; font-size: .9em;
+    background: var(--bg3); border: 1px solid var(--border); color: var(--text);
+  }
+  .ss-node.active { background: #1a2a1a; border-color: var(--green); color: var(--green); }
+  .ss-node.done   { background: #1a1a2a; border-color: var(--purple); color: var(--purple); }
+  .ss-arrow { color: var(--amber); }
+  .ss-label { font-size: .8em; color: var(--muted); margin-left: .3em; }
+
+  /* reduce default margins */
+  .reveal ul, .reveal ol { margin: .15em 0 .15em 1em; }
+.reveal .slides > section { display: flex !important; flex-direction: column !important; overflow-y: auto !important; align-items: stretch !important; justify-content: flex-start !important; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+
+<!-- ═══════════════════════════════ SLIDE 01 — TITLE ═══════════════════════════════ -->
+<section class="title-slide" data-background-color="#0a0a0f">
+  <div style="text-align:left; max-width:820px; margin:0 auto; padding: 1em 0;">
+    <div style="font-family:'JetBrains Mono',monospace; font-size:.5em; color:var(--muted); margin-bottom:.4em; letter-spacing:.1em;">
+      TECHNICAL PRESENTATION
+    </div>
+    <h1>Deploying Web<br>Applications</h1>
+    <div class="subtitle">From localhost to production &mdash; the complete journey</div>
+    <div style="width:60px; height:3px; background:var(--amber); margin-bottom:1.4em;"></div>
+    <div style="display:flex; gap:1.2em; flex-wrap:wrap; margin-bottom:1em;">
+      <span class="pill amber">Hosting</span>
+      <span class="pill green">DevOps</span>
+      <span class="pill purple">Infrastructure</span>
+      <span class="pill blue">DNS &amp; HTTPS</span>
+    </div>
+    <div class="ss-row" style="margin-top:0.6em;">
+      <span class="ss-node active">Code</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node active">Build</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node active">Configure</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node done">Deploy</span>
+      <span class="ss-arrow">&rarr;</span>
+      <span class="ss-node done">Monitor</span>
+    </div>
+    <p style="max-width:620px; color:#a0a0c0; font-size:.56em; line-height:1.5; margin-top:1em;">
+      Everything you need to know to get your web application off your laptop and in front of real users &mdash; covering free hosting, cloud platforms, DNS, HTTPS, and production best practices.
+    </p>
+    <div class="meta" style="margin-top:1.4em;">
+      Host &nbsp;&middot;&nbsp; Configure &nbsp;&middot;&nbsp; Secure &nbsp;&middot;&nbsp; Ship
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 02 — AGENDA ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">01</span>
+    <h2>Topics</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Foundations</h3>
+        <ul>
+          <li>What deployment actually means</li>
+          <li>Dev vs staging vs production</li>
+          <li>Static site hosting (free tier)</li>
+          <li>Deploying to GitHub Pages</li>
+        </ul>
+      </div>
+      <div class="card green" style="margin-top:0.5em;">
+        <h3 class="g">Platforms &amp; Cloud</h3>
+        <ul>
+          <li>Vercel &amp; Netlify workflows</li>
+          <li>Platform-as-a-Service (PaaS)</li>
+          <li>Cloud providers (AWS, GCP, Azure)</li>
+          <li>VMs vs containers vs serverless</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Networking &amp; Security</h3>
+        <ul>
+          <li>Domain names &amp; DNS</li>
+          <li>HTTPS &amp; SSL/TLS certificates</li>
+          <li>Environment variables &amp; secrets</li>
+          <li>Reverse proxies &amp; load balancers</li>
+        </ul>
+      </div>
+      <div class="card blue" style="margin-top:0.5em;">
+        <h3 class="b">Production Readiness</h3>
+        <ul>
+          <li>Deployment strategies</li>
+          <li>Monitoring &amp; logging</li>
+          <li>Cost comparison &amp; scaling</li>
+          <li>Common mistakes &amp; checklist</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 03 — WHAT IS DEPLOYMENT ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">02</span>
+    <h2>What Is Deployment?</h2>
+  </div>
+  <p>Deployment is the process of making your application available to users on a server, not just on your machine.</p>
+
+  <svg class="diagram" viewBox="0 0 900 140" style="margin:.4em auto;">
+    <defs>
+      <marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="#f5a623"/>
+      </marker>
+    </defs>
+    <!-- Dev -->
+    <rect x="10" y="30" width="180" height="80" rx="8" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="100" y="60" text-anchor="middle" fill="#4ecb8d" font-size="14" font-weight="600">Development</text>
+    <text x="100" y="82" text-anchor="middle" fill="#b8b8d0" font-size="11">localhost:3000</text>
+    <text x="100" y="98" text-anchor="middle" fill="#8888a8" font-size="10">Your machine only</text>
+    <!-- Arrow -->
+    <line x1="200" y1="70" x2="290" y2="70" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="245" y="60" text-anchor="middle" fill="#f5a623" font-size="10">git push</text>
+    <!-- Staging -->
+    <rect x="300" y="30" width="180" height="80" rx="8" fill="#1a1a2a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="390" y="60" text-anchor="middle" fill="#a78bfa" font-size="14" font-weight="600">Staging</text>
+    <text x="390" y="82" text-anchor="middle" fill="#b8b8d0" font-size="11">staging.app.com</text>
+    <text x="390" y="98" text-anchor="middle" fill="#8888a8" font-size="10">Team testing</text>
+    <!-- Arrow -->
+    <line x1="490" y1="70" x2="580" y2="70" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowA)"/>
+    <text x="535" y="60" text-anchor="middle" fill="#f5a623" font-size="10">promote</text>
+    <!-- Production -->
+    <rect x="590" y="30" width="180" height="80" rx="8" fill="#2a1a1a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="680" y="60" text-anchor="middle" fill="#f5a623" font-size="14" font-weight="600">Production</text>
+    <text x="680" y="82" text-anchor="middle" fill="#b8b8d0" font-size="11">app.com</text>
+    <text x="680" y="98" text-anchor="middle" fill="#8888a8" font-size="10">Real users</text>
+  </svg>
+
+  <div class="cols cols-3" style="margin-top:.3em;">
+    <div class="card green">
+      <h3 class="g">Development</h3>
+      <ul>
+        <li>Runs on your laptop</li>
+        <li>Hot reload, debug tools</li>
+        <li>Fake/test data</li>
+        <li>No need for HTTPS</li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3 class="p">Staging</h3>
+      <ul>
+        <li>Mirrors production setup</li>
+        <li>Used for QA &amp; testing</li>
+        <li>Safe to break things</li>
+        <li>Often password-protected</li>
+      </ul>
+    </div>
+    <div class="card amber">
+      <h3 class="a">Production</h3>
+      <ul>
+        <li>Real users, real data</li>
+        <li>Must be fast &amp; reliable</li>
+        <li>HTTPS required</li>
+        <li>Monitoring active</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 04 — STATIC HOSTING ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">03</span>
+    <h2>Static Site Hosting (Free Tier)</h2>
+  </div>
+  <p>For sites built with HTML/CSS/JS, React, Vue, Next.js (static export), etc. &mdash; no server needed.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Free Tier</th>
+        <th>Custom Domain</th>
+        <th>HTTPS</th>
+        <th>Build from Git</th>
+        <th>Best For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">GitHub Pages</span></td>
+        <td>Unlimited (public repos)</td>
+        <td>Yes</td>
+        <td>Yes (auto)</td>
+        <td>Yes (Actions)</td>
+        <td>Docs, portfolios, blogs</td>
+      </tr>
+      <tr>
+        <td><span class="g">Netlify</span></td>
+        <td>100 GB/month bandwidth</td>
+        <td>Yes</td>
+        <td>Yes (auto)</td>
+        <td>Yes (built-in)</td>
+        <td>JAMstack, forms, functions</td>
+      </tr>
+      <tr>
+        <td><span class="p">Vercel</span></td>
+        <td>100 GB/month bandwidth</td>
+        <td>Yes</td>
+        <td>Yes (auto)</td>
+        <td>Yes (built-in)</td>
+        <td>Next.js, React, SSR</td>
+      </tr>
+      <tr>
+        <td><span class="b">Cloudflare Pages</span></td>
+        <td>Unlimited bandwidth</td>
+        <td>Yes</td>
+        <td>Yes (auto)</td>
+        <td>Yes (built-in)</td>
+        <td>Speed, global CDN</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card green" style="margin-top:.4em;">
+    <h3 class="g">Key takeaway</h3>
+    <p>All four platforms offer <span class="a">free HTTPS</span>, <span class="a">custom domains</span>, and <span class="a">automatic deploys from Git</span>. For static sites, you should almost never pay for hosting.</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 05 — GITHUB PAGES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">04</span>
+    <h2>Deploying to GitHub Pages</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Option 1: Direct from branch</h3>
+        <p>Push HTML to <code>main</code> or a <code>gh-pages</code> branch. Enable in repo Settings &rarr; Pages.</p>
+      </div>
+      <pre><code class="language-bash"># Create and push to gh-pages branch
+git checkout -b gh-pages
+git push origin gh-pages
+
+# Your site is live at:
+# https://username.github.io/repo-name/</code></pre>
+
+      <div class="card green" style="margin-top:.3em;">
+        <h3 class="g">Option 2: GitHub Actions (recommended)</h3>
+        <p>Build step runs in CI, deploys the output. Works for any framework.</p>
+      </div>
+    </div>
+    <div>
+      <p style="margin-top:0;"><span class="a">GitHub Actions workflow:</span></p>
+      <pre><code class="language-yaml"># .github/workflows/deploy.yml
+name: Deploy to GitHub Pages
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+      - uses: actions/deploy-pages@v4</code></pre>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 06 — VERCEL / NETLIFY ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">05</span>
+    <h2>Deploying to Vercel &amp; Netlify</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card purple">
+        <h3 class="p">Vercel (ideal for Next.js)</h3>
+        <ul>
+          <li>Connect GitHub repo &rarr; auto-deploys</li>
+          <li>Preview deployments on every PR</li>
+          <li>Serverless functions built in</li>
+          <li>Edge middleware support</li>
+        </ul>
+      </div>
+      <pre><code class="language-bash"># CLI deploy (one-time setup)
+npm i -g vercel
+vercel          # deploys to preview
+vercel --prod   # deploys to production</code></pre>
+      <pre><code class="language-json">// vercel.json (optional config)
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ]
+}</code></pre>
+    </div>
+    <div>
+      <div class="card green">
+        <h3 class="g">Netlify</h3>
+        <ul>
+          <li>Drag-and-drop deploy or Git-based</li>
+          <li>Built-in form handling</li>
+          <li>Netlify Functions (AWS Lambda)</li>
+          <li>Split testing / branch deploys</li>
+        </ul>
+      </div>
+      <pre><code class="language-bash"># CLI deploy
+npm i -g netlify-cli
+netlify deploy        # preview
+netlify deploy --prod # production</code></pre>
+      <pre><code class="language-toml"># netlify.toml
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200</code></pre>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 07 — PaaS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">06</span>
+    <h2>Platform-as-a-Service (PaaS)</h2>
+  </div>
+  <p>For apps that need a <span class="a">backend server</span> (Node, Python, Ruby, Go, etc.). PaaS handles infrastructure so you focus on code.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Free Tier</th>
+        <th>Docker Support</th>
+        <th>Databases</th>
+        <th>Starting Price</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="p">Heroku</span></td>
+        <td>None (removed 2022)</td>
+        <td>Yes</td>
+        <td>Postgres add-on</td>
+        <td>$5/mo (Eco dynos)</td>
+        <td>Pioneer of PaaS, mature ecosystem</td>
+      </tr>
+      <tr>
+        <td><span class="g">Railway</span></td>
+        <td>$5 credit/month</td>
+        <td>Yes</td>
+        <td>Postgres, MySQL, Redis</td>
+        <td>Usage-based</td>
+        <td>Modern Heroku alternative</td>
+      </tr>
+      <tr>
+        <td><span class="b">Render</span></td>
+        <td>Static sites free; services sleep</td>
+        <td>Yes</td>
+        <td>Postgres (free 90 days)</td>
+        <td>$7/mo</td>
+        <td>Auto-deploy from Git</td>
+      </tr>
+      <tr>
+        <td><span class="a">Fly.io</span></td>
+        <td>3 shared VMs free</td>
+        <td>Yes (primary)</td>
+        <td>Postgres, SQLite (LiteFS)</td>
+        <td>Usage-based</td>
+        <td>Edge deployment, low latency</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cols cols-2" style="margin-top:.3em;">
+    <div class="card amber">
+      <h3 class="a">Typical PaaS workflow</h3>
+      <pre><code class="language-bash"># Railway example
+npm i -g @railway/cli
+railway login
+railway init
+railway up   # deploys your app</code></pre>
+    </div>
+    <div class="card green">
+      <h3 class="g">When to choose PaaS</h3>
+      <ul>
+        <li>You have a backend (API, database)</li>
+        <li>You want zero infrastructure management</li>
+        <li>Small-to-medium scale applications</li>
+        <li>Rapid prototyping and MVPs</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 08 — CLOUD PROVIDERS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">07</span>
+    <h2>Cloud Providers Overview</h2>
+  </div>
+  <p>The "big three" offer hundreds of services. Here are the ones relevant to web deployment.</p>
+
+  <div class="cols cols-3">
+    <div class="card amber">
+      <h3 class="a">AWS (Amazon)</h3>
+      <ul>
+        <li><span class="a">EC2</span> &mdash; virtual machines</li>
+        <li><span class="a">S3 + CloudFront</span> &mdash; static hosting + CDN</li>
+        <li><span class="a">Lambda</span> &mdash; serverless functions</li>
+        <li><span class="a">ECS / Fargate</span> &mdash; containers</li>
+        <li><span class="a">Elastic Beanstalk</span> &mdash; managed PaaS</li>
+        <li><span class="a">RDS</span> &mdash; managed databases</li>
+      </ul>
+      <p style="margin-top:.2em;"><span class="g">Free tier:</span> 12 months of t2.micro EC2, 5 GB S3, 1M Lambda requests/mo</p>
+    </div>
+    <div class="card blue">
+      <h3 class="b">GCP (Google)</h3>
+      <ul>
+        <li><span class="b">Compute Engine</span> &mdash; VMs</li>
+        <li><span class="b">Cloud Run</span> &mdash; containers</li>
+        <li><span class="b">Cloud Functions</span> &mdash; serverless</li>
+        <li><span class="b">Firebase Hosting</span> &mdash; static + SSR</li>
+        <li><span class="b">App Engine</span> &mdash; managed PaaS</li>
+        <li><span class="b">Cloud SQL</span> &mdash; managed databases</li>
+      </ul>
+      <p style="margin-top:.2em;"><span class="g">Free tier:</span> e2-micro VM always free, 2M Cloud Functions/mo</p>
+    </div>
+    <div class="card purple">
+      <h3 class="p">Azure (Microsoft)</h3>
+      <ul>
+        <li><span class="p">Virtual Machines</span></li>
+        <li><span class="p">App Service</span> &mdash; managed PaaS</li>
+        <li><span class="p">Azure Functions</span> &mdash; serverless</li>
+        <li><span class="p">Static Web Apps</span> &mdash; free hosting</li>
+        <li><span class="p">Container Apps</span></li>
+        <li><span class="p">Azure SQL</span></li>
+      </ul>
+      <p style="margin-top:.2em;"><span class="g">Free tier:</span> B1S VM (12 months), 1M Functions/mo</p>
+    </div>
+  </div>
+
+  <div class="card red" style="margin-top:.3em;">
+    <h3 class="r">Warning: Cloud billing</h3>
+    <p>Cloud providers charge per use. <span class="r">Always set billing alerts</span> and review costs weekly. A misconfigured service can run up a large bill quickly.</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 09 — AWS DEPLOYMENT OPTIONS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">08</span>
+    <h2>AWS Deployment Options</h2>
+  </div>
+
+  <svg class="diagram" viewBox="0 0 920 200" style="margin:.2em auto;">
+    <defs>
+      <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="#f5a623"/>
+      </marker>
+    </defs>
+    <!-- User -->
+    <rect x="10" y="70" width="100" height="50" rx="6" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="60" y="100" text-anchor="middle" fill="#4ecb8d" font-size="13" font-weight="600">Users</text>
+    <!-- Arrow to CloudFront -->
+    <line x1="115" y1="95" x2="175" y2="95" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowB)"/>
+    <!-- CloudFront -->
+    <rect x="180" y="70" width="130" height="50" rx="6" fill="#1a1a2a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="245" y="92" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="600">CloudFront</text>
+    <text x="245" y="108" text-anchor="middle" fill="#8888a8" font-size="10">CDN + HTTPS</text>
+    <!-- Arrows to options -->
+    <line x1="315" y1="80" x2="400" y2="30" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowB)"/>
+    <line x1="315" y1="95" x2="400" y2="95" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowB)"/>
+    <line x1="315" y1="110" x2="400" y2="165" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowB)"/>
+    <!-- S3 -->
+    <rect x="405" y="10" width="140" height="40" rx="6" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="475" y="35" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600">S3 (static files)</text>
+    <!-- ECS -->
+    <rect x="405" y="75" width="140" height="40" rx="6" fill="var(--bg3)" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="475" y="100" text-anchor="middle" fill="#4ecb8d" font-size="12" font-weight="600">ECS / Fargate</text>
+    <!-- Lambda -->
+    <rect x="405" y="145" width="140" height="40" rx="6" fill="var(--bg3)" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="475" y="170" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Lambda</text>
+    <!-- Labels on right -->
+    <text x="560" y="35" fill="#8888a8" font-size="10">React, Vue, static sites</text>
+    <text x="560" y="100" fill="#8888a8" font-size="10">Docker containers</text>
+    <text x="560" y="170" fill="#8888a8" font-size="10">API routes, serverless</text>
+    <!-- EC2 & EB -->
+    <rect x="700" y="10" width="140" height="40" rx="6" fill="var(--bg3)" stroke="#f87171" stroke-width="1.5"/>
+    <text x="770" y="35" text-anchor="middle" fill="#f87171" font-size="12" font-weight="600">EC2 (VMs)</text>
+    <rect x="700" y="75" width="140" height="40" rx="6" fill="var(--bg3)" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="770" y="100" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="600">Elastic Beanstalk</text>
+    <text x="855" y="35" fill="#8888a8" font-size="10">Full control</text>
+    <text x="855" y="100" fill="#8888a8" font-size="10">Managed PaaS</text>
+  </svg>
+
+  <div class="cols cols-2" style="margin-top:.2em;">
+    <div class="card blue">
+      <h3 class="b">S3 + CloudFront (static sites)</h3>
+      <pre><code class="language-bash"># Upload static site to S3
+aws s3 sync ./dist s3://my-bucket --delete
+
+# Create CloudFront distribution pointing to bucket
+# Gives you HTTPS + global CDN
+aws cloudfront create-invalidation \
+  --distribution-id EDIST123 \
+  --paths "/*"</code></pre>
+    </div>
+    <div class="card amber">
+      <h3 class="a">Elastic Beanstalk (full apps)</h3>
+      <pre><code class="language-bash"># Initialize and deploy
+eb init my-app --platform node.js
+eb create production
+eb deploy
+
+# Manages EC2, load balancer, auto-scaling
+# Like Heroku but on AWS</code></pre>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 10 — VMs vs CONTAINERS vs SERVERLESS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">09</span>
+    <h2>VMs vs Containers vs Serverless</h2>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Aspect</th>
+        <th>Virtual Machines</th>
+        <th>Containers</th>
+        <th>Serverless</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="a">Abstraction</span></td>
+        <td>Full OS, you manage everything</td>
+        <td>App + dependencies packaged</td>
+        <td>Just your function code</td>
+      </tr>
+      <tr>
+        <td><span class="a">Startup time</span></td>
+        <td>Minutes</td>
+        <td>Seconds</td>
+        <td>Milliseconds (cold: seconds)</td>
+      </tr>
+      <tr>
+        <td><span class="a">Scaling</span></td>
+        <td>Manual or auto-scaling groups</td>
+        <td>Orchestrator (K8s, ECS)</td>
+        <td>Automatic, instant</td>
+      </tr>
+      <tr>
+        <td><span class="a">Cost model</span></td>
+        <td>Pay for uptime (always on)</td>
+        <td>Pay for uptime (can scale to 0)</td>
+        <td>Pay per invocation</td>
+      </tr>
+      <tr>
+        <td><span class="a">Control</span></td>
+        <td>Full (SSH, install anything)</td>
+        <td>High (Dockerfile defines env)</td>
+        <td>Limited (runtime constraints)</td>
+      </tr>
+      <tr>
+        <td><span class="a">Examples</span></td>
+        <td>EC2, Compute Engine, Droplets</td>
+        <td>ECS, Cloud Run, Fly.io</td>
+        <td>Lambda, Cloud Functions, Vercel</td>
+      </tr>
+      <tr>
+        <td><span class="a">Best for</span></td>
+        <td>Legacy apps, custom runtimes</td>
+        <td>Microservices, complex apps</td>
+        <td>APIs, event handling, low traffic</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cols cols-2" style="margin-top:.3em;">
+    <div class="card green">
+      <h3 class="g">Simple Dockerfile</h3>
+      <pre><code class="language-dockerfile">FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --production
+COPY . .
+EXPOSE 3000
+CMD ["node", "server.js"]</code></pre>
+    </div>
+    <div class="card purple">
+      <h3 class="p">Recommendation</h3>
+      <p><span class="a">Starting out?</span> Use serverless (Vercel, Netlify) or PaaS (Railway, Render). Move to containers when you need more control. VMs are for when you need full OS access or run specialized software.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 11 — DOMAIN NAMES & DNS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">10</span>
+    <h2>Domain Names &amp; DNS</h2>
+  </div>
+  <p>DNS (Domain Name System) translates human-readable domain names into IP addresses that computers use.</p>
+
+  <svg class="diagram" viewBox="0 0 900 110" style="margin:.3em auto;">
+    <defs>
+      <marker id="arrowC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="#f5a623"/>
+      </marker>
+    </defs>
+    <rect x="10" y="25" width="130" height="50" rx="6" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="75" y="50" text-anchor="middle" fill="#4ecb8d" font-size="12" font-weight="600">Browser</text>
+    <text x="75" y="66" text-anchor="middle" fill="#8888a8" font-size="10">myapp.com</text>
+    <line x1="145" y1="50" x2="210" y2="50" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowC)"/>
+    <rect x="215" y="25" width="140" height="50" rx="6" fill="#1a1a2a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="285" y="50" text-anchor="middle" fill="#a78bfa" font-size="12" font-weight="600">DNS Resolver</text>
+    <text x="285" y="66" text-anchor="middle" fill="#8888a8" font-size="10">Lookup records</text>
+    <line x1="360" y1="50" x2="425" y2="50" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowC)"/>
+    <rect x="430" y="25" width="140" height="50" rx="6" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1.5"/>
+    <text x="500" y="50" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600">Nameserver</text>
+    <text x="500" y="66" text-anchor="middle" fill="#8888a8" font-size="10">A: 93.184.216.34</text>
+    <line x1="575" y1="50" x2="640" y2="50" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowC)"/>
+    <rect x="645" y="25" width="140" height="50" rx="6" fill="#2a1a1a" stroke="#f5a623" stroke-width="1.5"/>
+    <text x="715" y="50" text-anchor="middle" fill="#f5a623" font-size="12" font-weight="600">Your Server</text>
+    <text x="715" y="66" text-anchor="middle" fill="#8888a8" font-size="10">93.184.216.34</text>
+  </svg>
+
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Key DNS Record Types</h3>
+        <table>
+          <thead><tr><th>Record</th><th>Points To</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td><span class="a">A</span></td><td>IPv4 address</td><td>93.184.216.34</td></tr>
+            <tr><td><span class="g">AAAA</span></td><td>IPv6 address</td><td>2606:2800:220:1::248</td></tr>
+            <tr><td><span class="p">CNAME</span></td><td>Another domain</td><td>myapp.netlify.app</td></tr>
+            <tr><td><span class="b">TXT</span></td><td>Text data</td><td>Verification, SPF</td></tr>
+            <tr><td><span class="r">MX</span></td><td>Mail server</td><td>mail.example.com</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3 class="g">Where to buy domains</h3>
+        <ul>
+          <li><span class="a">Cloudflare Registrar</span> &mdash; at-cost pricing</li>
+          <li><span class="a">Namecheap</span> &mdash; popular, affordable</li>
+          <li><span class="a">Google Domains</span> &mdash; now Squarespace</li>
+          <li><span class="a">Porkbun</span> &mdash; competitive pricing</li>
+        </ul>
+        <p style="margin-top:.2em;">Typical cost: <span class="g">$10&ndash;15/year</span> for .com domains</p>
+      </div>
+      <div class="card purple" style="margin-top:.3em;">
+        <h3 class="p">Pro tip: CNAME for hosted platforms</h3>
+        <p>If deploying to Vercel/Netlify, use a <span class="p">CNAME</span> record pointing to their domain (e.g., <code>cname.vercel-dns.com</code>). They handle the rest.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 12 — HTTPS & SSL/TLS ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">11</span>
+    <h2>HTTPS &amp; SSL/TLS</h2>
+  </div>
+  <p>HTTPS encrypts data between the browser and your server. It is <span class="r">required</span> for modern web apps (browsers warn on HTTP).</p>
+
+  <div class="cols cols-2">
+    <div>
+      <svg class="diagram" viewBox="0 0 400 160" style="margin:.2em auto;">
+        <defs>
+          <marker id="arrowD" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <path d="M0,0 L8,3 L0,6" fill="#4ecb8d"/>
+          </marker>
+        </defs>
+        <text x="10" y="20" fill="#f5a623" font-size="13" font-weight="600">TLS Handshake (simplified)</text>
+        <rect x="30" y="35" width="80" height="110" rx="4" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1"/>
+        <text x="70" y="55" text-anchor="middle" fill="#60a5fa" font-size="11">Browser</text>
+        <rect x="280" y="35" width="80" height="110" rx="4" fill="var(--bg3)" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="320" y="55" text-anchor="middle" fill="#4ecb8d" font-size="11">Server</text>
+        <line x1="110" y1="70" x2="280" y2="70" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowD)"/>
+        <text x="195" y="66" text-anchor="middle" fill="#f5a623" font-size="9">ClientHello + supported ciphers</text>
+        <line x1="280" y1="90" x2="110" y2="90" stroke="#a78bfa" stroke-width="1" marker-end="url(#arrowD)"/>
+        <text x="195" y="86" text-anchor="middle" fill="#a78bfa" font-size="9">ServerHello + certificate</text>
+        <line x1="110" y1="110" x2="280" y2="110" stroke="#4ecb8d" stroke-width="1" marker-end="url(#arrowD)"/>
+        <text x="195" y="106" text-anchor="middle" fill="#4ecb8d" font-size="9">Key exchange</text>
+        <line x1="110" y1="135" x2="280" y2="135" stroke="#60a5fa" stroke-width="1"/>
+        <text x="195" y="131" text-anchor="middle" fill="#60a5fa" font-size="9">Encrypted data</text>
+      </svg>
+
+      <div class="card green">
+        <h3 class="g">Why HTTPS matters</h3>
+        <ul>
+          <li>Encrypts user data in transit</li>
+          <li>Required for HTTP/2, service workers</li>
+          <li>SEO ranking signal (Google)</li>
+          <li>Browser shows "Not Secure" without it</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card amber">
+        <h3 class="a">Let's Encrypt (free certificates)</h3>
+        <p>Free, automated, open certificate authority. Certificates renew every 90 days.</p>
+      </div>
+      <pre><code class="language-bash"># Using Certbot (most common)
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d myapp.com -d www.myapp.com
+
+# Auto-renewal (runs twice daily)
+sudo certbot renew --dry-run</code></pre>
+
+      <div class="card purple" style="margin-top:.3em;">
+        <h3 class="p">Managed HTTPS (zero config)</h3>
+        <ul>
+          <li><span class="g">Vercel / Netlify / Cloudflare Pages</span> &mdash; automatic</li>
+          <li><span class="b">AWS CloudFront</span> &mdash; ACM certificates (free)</li>
+          <li><span class="a">Caddy</span> &mdash; automatic HTTPS built in</li>
+          <li><span class="p">Railway / Render</span> &mdash; automatic for custom domains</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 13 — ENVIRONMENT VARIABLES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">12</span>
+    <h2>Environment Variables &amp; Secrets</h2>
+  </div>
+  <p>Configuration that changes between environments (API keys, database URLs, feature flags) should <span class="r">never be hardcoded</span> in your source code.</p>
+
+  <div class="cols cols-2">
+    <div>
+      <div class="card red">
+        <h3 class="r">Never do this</h3>
+        <pre><code class="language-javascript">// WRONG: secrets in code
+const dbUrl = "postgres://user:p4ssw0rd@db.com/prod";
+const apiKey = "sk-abc123secret456";</code></pre>
+      </div>
+      <div class="card green" style="margin-top:.3em;">
+        <h3 class="g">Do this instead</h3>
+        <pre><code class="language-javascript">// RIGHT: read from environment
+const dbUrl = process.env.DATABASE_URL;
+const apiKey = process.env.API_KEY;</code></pre>
+      </div>
+      <div class="card amber" style="margin-top:.3em;">
+        <h3 class="a">.env file (local development)</h3>
+        <pre><code class="language-bash"># .env (add to .gitignore!)
+DATABASE_URL=postgres://localhost/myapp
+API_KEY=dev-test-key-12345
+NODE_ENV=development</code></pre>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Setting env vars on platforms</h3>
+        <pre><code class="language-bash"># Vercel
+vercel env add DATABASE_URL
+
+# Netlify
+netlify env:set DATABASE_URL "postgres://..."
+
+# Railway
+railway variables set DATABASE_URL="..."
+
+# Render: Dashboard → Environment tab
+
+# AWS (Elastic Beanstalk)
+eb setenv DATABASE_URL="postgres://..."
+
+# Docker
+docker run -e DATABASE_URL="..." myapp</code></pre>
+      </div>
+      <div class="card blue" style="margin-top:.3em;">
+        <h3 class="b">Secrets management (production)</h3>
+        <ul>
+          <li><span class="a">AWS Secrets Manager</span> / Parameter Store</li>
+          <li><span class="b">Google Secret Manager</span></li>
+          <li><span class="p">HashiCorp Vault</span> (self-hosted)</li>
+          <li><span class="g">Doppler</span> / <span class="g">Infisical</span> (SaaS)</li>
+          <li><span class="r">GitHub Actions secrets</span> for CI/CD</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 14 — REVERSE PROXIES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">13</span>
+    <h2>Reverse Proxies &amp; Load Balancers</h2>
+  </div>
+  <p>A reverse proxy sits between users and your app server(s), handling HTTPS termination, load balancing, caching, and more.</p>
+
+  <svg class="diagram" viewBox="0 0 900 130" style="margin:.2em auto;">
+    <defs>
+      <marker id="arrowE" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6" fill="#f5a623"/>
+      </marker>
+    </defs>
+    <rect x="10" y="40" width="100" height="45" rx="6" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1.5"/>
+    <text x="60" y="68" text-anchor="middle" fill="#4ecb8d" font-size="12" font-weight="600">Users</text>
+    <line x1="115" y1="62" x2="200" y2="62" stroke="#f5a623" stroke-width="1.5" marker-end="url(#arrowE)"/>
+    <text x="155" y="55" text-anchor="middle" fill="#8888a8" font-size="9">HTTPS</text>
+    <rect x="205" y="25" width="170" height="75" rx="6" fill="#1a1a2a" stroke="#a78bfa" stroke-width="1.5"/>
+    <text x="290" y="52" text-anchor="middle" fill="#a78bfa" font-size="13" font-weight="600">Reverse Proxy</text>
+    <text x="290" y="72" text-anchor="middle" fill="#8888a8" font-size="10">Nginx / Caddy / ALB</text>
+    <text x="290" y="88" text-anchor="middle" fill="#8888a8" font-size="9">TLS termination + routing</text>
+    <line x1="380" y1="42" x2="475" y2="25" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowE)"/>
+    <line x1="380" y1="62" x2="475" y2="62" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowE)"/>
+    <line x1="380" y1="82" x2="475" y2="100" stroke="#f5a623" stroke-width="1" marker-end="url(#arrowE)"/>
+    <rect x="480" y="5" width="130" height="35" rx="5" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1"/>
+    <text x="545" y="28" text-anchor="middle" fill="#60a5fa" font-size="11">App Server 1</text>
+    <rect x="480" y="45" width="130" height="35" rx="5" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1"/>
+    <text x="545" y="68" text-anchor="middle" fill="#60a5fa" font-size="11">App Server 2</text>
+    <rect x="480" y="85" width="130" height="35" rx="5" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1"/>
+    <text x="545" y="108" text-anchor="middle" fill="#60a5fa" font-size="11">App Server 3</text>
+  </svg>
+
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Nginx config</h3>
+        <pre><code class="language-nginx">server {
+    listen 443 ssl;
+    server_name myapp.com;
+
+    ssl_certificate /etc/letsencrypt/live/myapp.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/myapp.com/privkey.pem;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</code></pre>
+      </div>
+    </div>
+    <div>
+      <div class="card green">
+        <h3 class="g">Caddy (auto HTTPS)</h3>
+        <pre><code class="language-text"># Caddyfile - that's it! Auto HTTPS.
+myapp.com {
+    reverse_proxy localhost:3000
+}</code></pre>
+        <p style="margin-top:.2em;">Caddy automatically provisions and renews Let's Encrypt certificates.</p>
+      </div>
+      <div class="card blue" style="margin-top:.3em;">
+        <h3 class="b">AWS Application Load Balancer</h3>
+        <ul>
+          <li>Managed, no servers to run</li>
+          <li>Routes to ECS tasks or EC2 instances</li>
+          <li>ACM certificates (free HTTPS)</li>
+          <li>Path-based &amp; host-based routing</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 15 — DEPLOYMENT STRATEGIES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">14</span>
+    <h2>Deployment Strategies</h2>
+  </div>
+  <p>How you roll out new code to production without causing downtime or breaking things for users.</p>
+
+  <div class="cols cols-3">
+    <div class="card green">
+      <h3 class="g">Rolling Deployment</h3>
+      <svg class="diagram" viewBox="0 0 240 80">
+        <rect x="5" y="5" width="50" height="30" rx="4" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="30" y="24" text-anchor="middle" fill="#4ecb8d" font-size="9">v2</text>
+        <rect x="65" y="5" width="50" height="30" rx="4" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="90" y="24" text-anchor="middle" fill="#4ecb8d" font-size="9">v2</text>
+        <rect x="125" y="5" width="50" height="30" rx="4" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1"/>
+        <text x="150" y="24" text-anchor="middle" fill="#60a5fa" font-size="9">v1</text>
+        <rect x="185" y="5" width="50" height="30" rx="4" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1"/>
+        <text x="210" y="24" text-anchor="middle" fill="#60a5fa" font-size="9">v1</text>
+        <text x="120" y="60" text-anchor="middle" fill="#8888a8" font-size="9">Replace one at a time</text>
+      </svg>
+      <ul>
+        <li>Gradually replace old instances</li>
+        <li>Zero downtime</li>
+        <li>Both versions run briefly</li>
+        <li><span class="a">Default for K8s, ECS</span></li>
+      </ul>
+    </div>
+    <div class="card blue">
+      <h3 class="b">Blue/Green</h3>
+      <svg class="diagram" viewBox="0 0 240 80">
+        <rect x="5" y="5" width="105" height="30" rx="4" fill="#1a1a2a" stroke="#60a5fa" stroke-width="1"/>
+        <text x="57" y="24" text-anchor="middle" fill="#60a5fa" font-size="9">Blue (v1 - live)</text>
+        <rect x="125" y="5" width="105" height="30" rx="4" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="177" y="24" text-anchor="middle" fill="#4ecb8d" font-size="9">Green (v2 - new)</text>
+        <line x1="120" y1="50" x2="60" y2="40" stroke="#8888a8" stroke-width="1" stroke-dasharray="3"/>
+        <line x1="120" y1="50" x2="180" y2="40" stroke="#4ecb8d" stroke-width="1.5"/>
+        <text x="120" y="65" text-anchor="middle" fill="#f5a623" font-size="9">Switch traffic instantly</text>
+      </svg>
+      <ul>
+        <li>Two identical environments</li>
+        <li>Instant switch via DNS/LB</li>
+        <li>Easy rollback (switch back)</li>
+        <li><span class="r">Costs 2x resources</span></li>
+      </ul>
+    </div>
+    <div class="card purple">
+      <h3 class="p">Canary</h3>
+      <svg class="diagram" viewBox="0 0 240 80">
+        <rect x="5" y="5" width="170" height="30" rx="4" fill="var(--bg3)" stroke="#60a5fa" stroke-width="1"/>
+        <text x="90" y="24" text-anchor="middle" fill="#60a5fa" font-size="9">95% traffic &rarr; v1</text>
+        <rect x="185" y="5" width="50" height="30" rx="4" fill="#1a2a1a" stroke="#4ecb8d" stroke-width="1"/>
+        <text x="210" y="24" text-anchor="middle" fill="#4ecb8d" font-size="9">v2</text>
+        <text x="210" y="55" text-anchor="middle" fill="#f5a623" font-size="9">5%</text>
+        <text x="120" y="70" text-anchor="middle" fill="#8888a8" font-size="9">Gradually increase v2</text>
+      </svg>
+      <ul>
+        <li>Route small % to new version</li>
+        <li>Monitor errors &amp; metrics</li>
+        <li>Gradually increase if healthy</li>
+        <li><span class="a">Safest for critical apps</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card amber" style="margin-top:.3em;">
+    <h3 class="a">For most beginners</h3>
+    <p>Platforms like Vercel, Netlify, and Railway handle deployment strategy automatically. You get <span class="g">atomic deploys</span> &mdash; the new version replaces the old instantly with zero downtime. You only need to think about these strategies when running your own infrastructure.</p>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 16 — MONITORING & LOGGING ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">15</span>
+    <h2>Monitoring &amp; Logging</h2>
+  </div>
+  <p>Deploying is not "done" when the code is live. You need to know when things break and why.</p>
+
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">What to monitor</h3>
+        <table>
+          <thead><tr><th>Metric</th><th>Why It Matters</th></tr></thead>
+          <tbody>
+            <tr><td><span class="g">Response time</span></td><td>Users leave if pages are slow</td></tr>
+            <tr><td><span class="r">Error rate</span></td><td>5xx errors mean your app is broken</td></tr>
+            <tr><td><span class="b">Uptime</span></td><td>Is your site actually accessible?</td></tr>
+            <tr><td><span class="p">CPU / Memory</span></td><td>Are you about to hit limits?</td></tr>
+            <tr><td><span class="a">Request count</span></td><td>Traffic spikes, DDoS detection</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card green" style="margin-top:.3em;">
+        <h3 class="g">Free monitoring tools</h3>
+        <ul>
+          <li><span class="a">UptimeRobot</span> &mdash; uptime pings (free 50 monitors)</li>
+          <li><span class="b">Better Stack</span> &mdash; uptime + status pages</li>
+          <li><span class="p">Sentry</span> &mdash; error tracking (free tier)</li>
+          <li><span class="g">Vercel/Netlify analytics</span> &mdash; built-in</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Structured logging</h3>
+        <pre><code class="language-javascript">// Use structured JSON logs, not console.log
+const logger = require('pino')();
+
+logger.info({ userId: 123, action: 'login' },
+  'User logged in');
+
+logger.error({ err, requestId: req.id },
+  'Payment failed');</code></pre>
+        <p style="margin-top:.2em;">JSON logs are searchable. Plain text logs are not.</p>
+      </div>
+      <div class="card blue" style="margin-top:.3em;">
+        <h3 class="b">Production logging stack</h3>
+        <ul>
+          <li><span class="a">Datadog</span> &mdash; full observability (paid)</li>
+          <li><span class="g">Grafana + Loki</span> &mdash; open source</li>
+          <li><span class="b">AWS CloudWatch</span> &mdash; built into AWS</li>
+          <li><span class="p">Axiom</span> &mdash; generous free tier</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 17 — COST COMPARISON ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">16</span>
+    <h2>Cost Comparison</h2>
+  </div>
+  <p>What it actually costs to host a web application at different scales.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Scenario</th>
+        <th>Platform</th>
+        <th>Monthly Cost</th>
+        <th>Includes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="g">Static portfolio site</span></td>
+        <td>GitHub Pages / Cloudflare Pages</td>
+        <td><span class="g">$0</span></td>
+        <td>Hosting, HTTPS, CDN</td>
+      </tr>
+      <tr>
+        <td><span class="g">React SPA + API routes</span></td>
+        <td>Vercel free tier</td>
+        <td><span class="g">$0</span></td>
+        <td>100 GB BW, serverless functions</td>
+      </tr>
+      <tr>
+        <td><span class="b">Node.js app + Postgres</span></td>
+        <td>Railway</td>
+        <td><span class="b">$5&ndash;15</span></td>
+        <td>App server + managed database</td>
+      </tr>
+      <tr>
+        <td><span class="p">Full-stack app, moderate traffic</span></td>
+        <td>Render / Fly.io</td>
+        <td><span class="p">$15&ndash;50</span></td>
+        <td>Always-on server, database, SSL</td>
+      </tr>
+      <tr>
+        <td><span class="a">Production app, team</span></td>
+        <td>AWS (ECS + RDS + CloudFront)</td>
+        <td><span class="a">$50&ndash;200</span></td>
+        <td>Containers, managed DB, CDN</td>
+      </tr>
+      <tr>
+        <td><span class="r">High-traffic SaaS</span></td>
+        <td>AWS / GCP (multi-service)</td>
+        <td><span class="r">$500+</span></td>
+        <td>Auto-scaling, redundancy, monitoring</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cols cols-2" style="margin-top:.3em;">
+    <div class="card green">
+      <h3 class="g">Start free, scale later</h3>
+      <ul>
+        <li>Most hobby projects cost <span class="g">$0/month</span></li>
+        <li>Upgrade only when you hit free tier limits</li>
+        <li>Domain name is usually the first cost (~$12/year)</li>
+        <li>Managed databases are the biggest cost driver</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <h3 class="r">Watch out for</h3>
+      <ul>
+        <li><span class="r">AWS data transfer</span> charges (egress fees)</li>
+        <li>Forgotten EC2 instances running 24/7</li>
+        <li>Oversized database instances</li>
+        <li>Not using reserved instances for predictable workloads</li>
+        <li>Serverless at high volume can exceed VM costs</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 18 — COMMON MISTAKES ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">17</span>
+    <h2>Common Mistakes &amp; Pitfalls</h2>
+  </div>
+  <div class="cols cols-2">
+    <div>
+      <div class="card red">
+        <h3 class="r">1. Committing secrets to Git</h3>
+        <p>API keys, database passwords, .env files pushed to public repos. Use <code>.gitignore</code> and rotate any leaked credentials immediately.</p>
+        <pre><code class="language-bash"># .gitignore
+.env
+.env.local
+*.pem
+node_modules/</code></pre>
+      </div>
+      <div class="card red" style="margin-top:.3em;">
+        <h3 class="r">2. No HTTPS</h3>
+        <p>Running HTTP in production. All platforms offer free HTTPS. There is no excuse not to use it.</p>
+      </div>
+      <div class="card red" style="margin-top:.3em;">
+        <h3 class="r">3. Hardcoding localhost URLs</h3>
+        <p>Using <code>http://localhost:3000</code> in frontend code that runs in production. Use environment variables for API URLs.</p>
+      </div>
+      <div class="card red" style="margin-top:.3em;">
+        <h3 class="r">4. No error handling</h3>
+        <p>Unhandled exceptions crash your server. Add global error handlers and process managers (<code>pm2</code>, container restart policies).</p>
+      </div>
+    </div>
+    <div>
+      <div class="card red">
+        <h3 class="r">5. Skipping build step</h3>
+        <p>Deploying development source instead of production build. Always run <code>npm run build</code> and serve the optimized output.</p>
+      </div>
+      <div class="card red" style="margin-top:.3em;">
+        <h3 class="r">6. Wrong Node/Python version</h3>
+        <p>Production uses a different runtime version than development. Pin versions in <code>package.json</code> engines, <code>.nvmrc</code>, or Dockerfile.</p>
+        <pre><code class="language-json">// package.json
+{
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}</code></pre>
+      </div>
+      <div class="card red" style="margin-top:.3em;">
+        <h3 class="r">7. No health check endpoint</h3>
+        <p>Load balancers and orchestrators need a <code>/health</code> route to know your app is alive.</p>
+        <pre><code class="language-javascript">app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 19 — DEPLOYMENT CHECKLIST ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">18</span>
+    <h2>Deployment Checklist</h2>
+  </div>
+  <p>Run through this before every production deploy.</p>
+
+  <div class="cols cols-2">
+    <div>
+      <div class="card green">
+        <h3 class="g">Before Deploy</h3>
+        <ul>
+          <li>All tests passing</li>
+          <li>Build succeeds with no warnings/errors</li>
+          <li>Environment variables configured</li>
+          <li>No secrets in source code or Git history</li>
+          <li><code>.gitignore</code> covers .env, node_modules, etc.</li>
+          <li>Database migrations prepared</li>
+          <li>Dependencies pinned (lockfile committed)</li>
+          <li>Node/Python version specified</li>
+        </ul>
+      </div>
+      <div class="card amber" style="margin-top:.3em;">
+        <h3 class="a">Networking</h3>
+        <ul>
+          <li>Custom domain configured with DNS</li>
+          <li>HTTPS working (no mixed content)</li>
+          <li>www &rarr; non-www redirect (or vice versa)</li>
+          <li>CORS configured for your domain</li>
+          <li>API URLs use environment variables</li>
+        </ul>
+      </div>
+    </div>
+    <div>
+      <div class="card blue">
+        <h3 class="b">After Deploy</h3>
+        <ul>
+          <li>Visit the live URL &mdash; does it load?</li>
+          <li>Test critical user flows (signup, login, payment)</li>
+          <li>Check browser console for errors</li>
+          <li>Verify HTTPS padlock in browser</li>
+          <li>Check response times are acceptable</li>
+          <li>Monitoring / alerting configured</li>
+          <li>Error tracking active (Sentry, etc.)</li>
+        </ul>
+      </div>
+      <div class="card purple" style="margin-top:.3em;">
+        <h3 class="p">Performance</h3>
+        <ul>
+          <li>Assets minified and compressed (gzip/brotli)</li>
+          <li>Images optimized (WebP, lazy loading)</li>
+          <li>CDN configured for static assets</li>
+          <li>Cache headers set appropriately</li>
+          <li>Lighthouse score acceptable (&gt; 90)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 20 — FULL DEPLOY EXAMPLE ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">19</span>
+    <h2>Putting It Together: Full Deploy Pipeline</h2>
+  </div>
+  <p>A complete GitHub Actions workflow that builds, tests, containerizes, and deploys.</p>
+
+  <pre><code class="language-yaml"># .github/workflows/deploy.yml
+name: Build & Deploy
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+      # Deploy to your platform of choice:
+      # - fly deploy
+      # - railway up
+      # - aws ecs update-service ...</code></pre>
+</section>
+
+
+<!-- ═══════════════════════════════ SLIDE 21 — SUMMARY ═══════════════════════════════ -->
+<section data-background-color="#0a0a0f">
+  <div class="slide-hdr">
+    <span class="tag">20</span>
+    <h2>Summary &amp; Further Reading</h2>
+  </div>
+
+  <div class="cols cols-2">
+    <div>
+      <div class="card amber">
+        <h3 class="a">Key Takeaways</h3>
+        <ul>
+          <li><span class="g">Static sites</span> &rarr; Vercel, Netlify, GitHub Pages, Cloudflare Pages (all free)</li>
+          <li><span class="b">Backend apps</span> &rarr; Railway, Render, Fly.io (cheap PaaS)</li>
+          <li><span class="p">Complex/large apps</span> &rarr; AWS, GCP, Azure with containers</li>
+          <li><span class="a">Always use HTTPS</span> &mdash; free everywhere</li>
+          <li><span class="r">Never commit secrets</span> &mdash; use env vars</li>
+          <li>Start simple, add complexity only when needed</li>
+        </ul>
+      </div>
+
+      <div class="card green" style="margin-top:.4em;">
+        <h3 class="g">Recommended learning path</h3>
+        <ol>
+          <li>Deploy a static site to GitHub Pages</li>
+          <li>Deploy a Next.js app to Vercel</li>
+          <li>Deploy a Node.js + Postgres app to Railway</li>
+          <li>Add a custom domain + HTTPS</li>
+          <li>Set up CI/CD with GitHub Actions</li>
+          <li>Try Docker + Fly.io or Cloud Run</li>
+        </ol>
+      </div>
+    </div>
+    <div>
+      <div class="card purple">
+        <h3 class="p">Further reading</h3>
+        <ul>
+          <li><span class="a">The Twelve-Factor App</span> &mdash; 12factor.net</li>
+          <li><span class="b">Docker Getting Started</span> &mdash; docs.docker.com</li>
+          <li><span class="g">Vercel Docs</span> &mdash; vercel.com/docs</li>
+          <li><span class="p">Netlify Docs</span> &mdash; docs.netlify.com</li>
+          <li><span class="a">AWS Well-Architected</span> &mdash; Framework guide</li>
+          <li><span class="b">Caddy Documentation</span> &mdash; caddyserver.com/docs</li>
+          <li><span class="r">Let's Encrypt</span> &mdash; letsencrypt.org</li>
+        </ul>
+      </div>
+
+      <div class="card blue" style="margin-top:.4em;">
+        <h3 class="b">Quick reference</h3>
+        <div class="ss-row" style="flex-wrap:wrap;">
+          <span class="ss-node active">Write Code</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node active">Push to Git</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node done">CI Builds &amp; Tests</span>
+          <span class="ss-arrow">&rarr;</span>
+          <span class="ss-node done">Deploy</span>
+        </div>
+        <p style="margin-top:.3em;">The best deployment is the one you <span class="a">don't have to think about</span>. Automate everything.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+</div><!-- /.slides -->
+</div><!-- /.reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/plugin/highlight/highlight.min.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  slideNumber: 'c/t',
+  transition: 'fade',
+  transitionSpeed: 'fast',
+  controls: true,
+  progress: true,
+  center: false,
+  width: 1100,
+  height: 900,
+  margin: 0.01,
+  plugins: [RevealHighlight],
+  highlight: { theme: 'monokai' }
+});
+</script>
+<script>
+(function(){
+  var h = Reveal.getConfig().height || 900;
+  var m = Reveal.getConfig().margin || 0.02;
+  var maxH = Math.floor(h * (1 - 2 * m)) + 'px';
+  function fixSlides(){
+    document.querySelectorAll('.reveal .slides>section,.reveal .slides>section>section').forEach(function(s){
+      s.style.display = 'block';
+      s.style.maxHeight = maxH;
+    });
+  }
+  Reveal.on('ready', fixSlides);
+  Reveal.on('slidechanged', fixSlides);
+})();
+</script>
+</body>
+</html>
