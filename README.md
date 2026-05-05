@@ -44,6 +44,13 @@ An interactive Reveal.js presentation on deploying web apps — static hosting, 
 | Fullscreen | `F` |
 | Export to PDF | Append `?print-pdf` to URL, then print |
 
+## See also
+
+- [Cloud_aaS_03_PaaS_FaaS_CaaS](https://github.com/BrendanJamesLynskey/Cloud_aaS_03_PaaS_FaaS_CaaS) — managed compute in depth (the layer this deck introduces).
+- [Cloud_aaS_01_Service_Models](https://github.com/BrendanJamesLynskey/Cloud_aaS_01_Service_Models) — the *aaS taxonomy that frames this material.
+- Series hub: [Cloud `*aaS`](https://github.com/BrendanJamesLynskey/Cloud_aaS_Hub).
+- Companion: [Deploying with Docker](https://github.com/BrendanJamesLynskey/Deploying_with_Docker), [Introduction to CI/CD](https://github.com/BrendanJamesLynskey/Introduction_to_CI_CD).
+
 ## Technology
 
 [Reveal.js 4.6](https://revealjs.com) · [highlight.js](https://highlightjs.org) · Playfair Display + DM Sans + JetBrains Mono
@@ -53,7 +60,3 @@ Single self-contained `index.html` — no build step, no npm, no dependencies to
 ## References
 
 [The Twelve-Factor App](https://12factor.net) · [AWS Documentation](https://docs.aws.amazon.com) · [Vercel Docs](https://vercel.com/docs) · [Let's Encrypt](https://letsencrypt.org)
-
-## License
-
-Educational use. Code examples provided as-is.
